@@ -1,0 +1,13 @@
+[Unit]
+Description=Temperature-based Fan Control Service
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/marc/Github/pi-noctua-pwm/fan-control.py
+Restart=on-failure
+User=marc
+Group=gpio
+
+[Install]
+WantedBy=multi-user.target
