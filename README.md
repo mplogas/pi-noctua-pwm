@@ -57,6 +57,8 @@ MIN_FAN_SPEED = 20       # Minimum fan speed (percent) when temp is above LOWER_
 MAX_FAN_SPEED = 100      # Maximum fan speed (percent).
 ```
 
+Noctua's PWM specification calls for ~25 kHz, but the fan tested for this project was unresponsive at that rate, so `PWM_FREQ_HZ` defaults to 1 kHz. If you hear an audible whine from the fan windings, drop it to `100`.
+
 ## Running as a Systemd Service
 
 To have the script start automatically on boot, you can run it as a `systemd` service.

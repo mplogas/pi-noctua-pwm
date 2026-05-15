@@ -4,7 +4,11 @@ from gpiozero import PWMOutputDevice
 
 # --- Configuration ---
 GPIO_PWM = 14            # BCM pin (physical pin 8)
-PWM_FREQ_HZ = 1_000      # Software PWM via gpiozero/lgpio; 1 kHz is a good Pi-friendly default
+# Noctua's spec is ~25 kHz, but hardware PWM at that rate was unresponsive with the
+# fan tested here. The previous time.sleep-based PWM nominally targeted 25 kHz but
+# in practice ran at sub-kHz due to scheduler granularity, which is what the fan
+# was implicitly tuned for. Drop to 100 if a winding whine becomes audible.
+PWM_FREQ_HZ = 1_000
 TEMP_FILE_PATH = "/sys/block/nvme0n1/device/hwmon1/temp1_input"
 READ_INTERVAL = 10       # seconds
 LOWER_TEMP = 40          # degrees Celsius
@@ -42,9 +46,9 @@ def main() -> None:
     try:
         while True:
             current_temp = read_temp()
-            fan_speed = calculate_fan_speed(current_temp)
-            fan.value = fan_speed / 100.0
             if current_temp is not None:
+                fan_speed = calculate_fan_speed(current_temp)
+                fan.value = fan_speed / 100.0
                 print(f"Current Temp: {current_temp:.2f}°C -> Fan Speed: {fan_speed}%")
             time.sleep(READ_INTERVAL)
     except KeyboardInterrupt:
