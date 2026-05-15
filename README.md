@@ -26,12 +26,20 @@ Raspberry Pi 5 GPIO Header
 
 ## Prerequisites
 
-This script requires the `gpiod` library. Install it and its dependencies with:
+The script uses `gpiozero` with the `lgpio` backend (default on Raspberry Pi OS Bookworm/Trixie). Both are pre-installed on a stock image; if you need to install them manually:
 
 ```bash
 sudo apt update
-sudo apt install gpiod
+sudo apt install python3-gpiozero python3-lgpio
 ```
+
+Your user must be in the `gpio` group to access GPIO without root:
+
+```bash
+sudo usermod -aG gpio <your_username>
+```
+
+Log out and back in (or reboot) for the group change to take effect.
 
 ## Configuration
 
@@ -39,13 +47,14 @@ All user-configurable parameters are located at the top of the `fan-control.py` 
 
 ```python
 # --- Configuration ---
-GPIO_PWM = 14  # BCM pin number for the PWM signal. Default is 14 (physical pin 8).
-TEMP_FILE_PATH = "/sys/block/nvme0n1/device/hwmon1/temp1_input" # Path to temperature sensor file.
-READ_INTERVAL = 10  # Seconds between temperature checks.
-LOWER_TEMP = 40  # Temp (C) below which the fan turns off.
-UPPER_TEMP = 65  # Temp (C) at which the fan reaches 100% speed.
-MIN_FAN_SPEED = 20  # Minimum fan speed (percent) when temp is above LOWER_TEMP.
-MAX_FAN_SPEED = 100 # Maximum fan speed (percent).
+GPIO_PWM = 14            # BCM pin number (physical pin 8)
+PWM_FREQ_HZ = 1_000      # Software PWM frequency
+TEMP_FILE_PATH = "/sys/block/nvme0n1/device/hwmon1/temp1_input"
+READ_INTERVAL = 10       # Seconds between temperature checks.
+LOWER_TEMP = 40          # Temp (C) below which the fan turns off.
+UPPER_TEMP = 65          # Temp (C) at which the fan reaches 100% speed.
+MIN_FAN_SPEED = 20       # Minimum fan speed (percent) when temp is above LOWER_TEMP.
+MAX_FAN_SPEED = 100      # Maximum fan speed (percent).
 ```
 
 ## Running as a Systemd Service
