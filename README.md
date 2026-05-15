@@ -61,15 +61,16 @@ MAX_FAN_SPEED = 100      # Maximum fan speed (percent).
 
 To have the script start automatically on boot, you can run it as a `systemd` service.
 
-### 1. Create the Service File
+### 1. Install the Service File
 
-Create a new service file using a text editor of your choice:
+A ready-to-use unit file ships in the repo. Copy it into place and edit the `ExecStart` path and `User` to match your setup:
 
 ```bash
-sudo joe /etc/systemd/system/fan-control.service
+sudo cp fan-control.service /etc/systemd/system/fan-control.service
+sudoedit /etc/systemd/system/fan-control.service
 ```
 
-Paste the following content into the file. **You must modify the `ExecStart` and `User` lines to match your system.**
+The file content, with the two lines you will need to change marked:
 
 ```ini
 [Unit]
@@ -78,26 +79,22 @@ After=multi-user.target
 
 [Service]
 Type=simple
-# Replace '/home/pi/Github/pi-noctua-pwm/fan-control.py' with the full path to your script
-ExecStart=/usr/bin/python3 /home/pi/Github/pi-noctua-pwm/fan-control.py
+ExecStart=/usr/bin/python3 /path/to/pi-noctua-pwm/fan-control.py   # edit this
 Restart=on-failure
-# Replace 'pi' with your username
-User=pi
+User=<your_username>                                               # edit this
 Group=gpio
+Environment=PYTHONUNBUFFERED=1
+# lgpio creates a notification pipe in CWD; give it a managed runtime dir.
+RuntimeDirectory=fan-control
+WorkingDirectory=/run/fan-control
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-### 2. Add User to GPIO Group
+`RuntimeDirectory` plus `WorkingDirectory` are not optional: lgpio writes a notification pipe to the current working directory on startup, and the default systemd CWD (`/`) is not writable by an unprivileged user, so without them the service fails to start even though manual invocations from a shell work. `PYTHONUNBUFFERED=1` makes the script's prints reach `journalctl` live instead of buffering until the process exits.
 
-The service needs permission to access GPIO. Add your user to the `gpio` group (if not already done) and reboot or log out/in for the change to take effect.
-
-```bash
-sudo usermod -aG gpio <your_username>
-```
-
-### 3. Enable and Start the Service
+### 2. Enable and Start the Service
 
 -   Reload the systemd daemon to recognize the new service:
     ```bash
@@ -114,7 +111,7 @@ sudo usermod -aG gpio <your_username>
     sudo systemctl start fan-control.service
     ```
 
-### 4. Check the Service Status
+### 3. Check the Service Status
 
 You can check if the service is running correctly and view its log output.
 
