@@ -4,10 +4,14 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /home/marc/Github/pi-noctua-pwm/fan-control.py
+ExecStart=/usr/bin/python3 /path/to/pi-noctua-pwm/fan-control.py
 Restart=on-failure
-User=marc
+User=<your_username>
 Group=gpio
+Environment=PYTHONUNBUFFERED=1
+# lgpio creates a notification pipe in CWD; give it a managed runtime dir.
+RuntimeDirectory=fan-control
+WorkingDirectory=/run/fan-control
 
 [Install]
 WantedBy=multi-user.target
